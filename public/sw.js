@@ -1,5 +1,5 @@
 // Minimal service worker for PWA "Add to Home Screen" + asset caching
-var CACHE_NAME = "mediaforce-v1";
+var CACHE_NAME = "mediaforce-v2";
 var PRECACHE = ["/css/style.css", "/js/app.js"];
 
 self.addEventListener("install", function (e) {
