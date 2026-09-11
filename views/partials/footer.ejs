@@ -1,0 +1,10 @@
+<footer class="sitefooter">
+  <div>Made with <span class="footer-heart">♥</span> by Somvanshi — your collection, your rules.</div>
+  <div class="footer-stats">
+    <% if (typeof totalCount !== 'undefined') { %>
+      <%= totalCount %> titles catalogued · <code>data/collection.json</code>
+    <% } else { %>
+      Your collection lives in <code>data/collection.json</code> — back it up anytime.
+    <% } %>
+  </div>
+</footer>

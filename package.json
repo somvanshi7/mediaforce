@@ -1,0 +1,16 @@
+{
+  "name": "media-force-bewitch-you",
+  "version": "2.0.0",
+  "description": "Somvanshi's personal movie & web series ledger — your own collection and watchlist, accessible from anywhere. May the Force be with you.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx -y nodemon server.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.1",
+    "method-override": "^3.0.0"
+  }
+}

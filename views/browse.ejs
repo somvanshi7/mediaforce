@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% var title = 'Browse' %>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/nav') %>
+
+  <div class="wrap">
+    <h1 class="section-title fade-in" style="font-size:2rem; margin-bottom:18px;">Browse Collection</h1>
+
+    <form class="filterbar fade-in" method="GET" action="/browse">
+      <input type="text" name="q" id="instantSearch" placeholder="Search titles..." value="<%= filters.q %>" autocomplete="off">
+      <select name="category" onchange="this.form.submit()">
+        <option value="">All categories</option>
+        <% allCategories.forEach(function(c) { %>
+          <option value="<%= c %>" <%= filters.category === c ? 'selected' : '' %>><%= c %></option>
+        <% }) %>
+      </select>
+      <select name="type" onchange="this.form.submit()">
+        <option value="">Movies & Series</option>
+        <option value="movie" <%= filters.type === 'movie' ? 'selected' : '' %>>Movies only</option>
+        <option value="series" <%= filters.type === 'series' ? 'selected' : '' %>>Series only</option>
+      </select>
+      <select name="origin" onchange="this.form.submit()">
+        <option value="">Any origin</option>
+        <option value="Indian" <%= filters.origin === 'Indian' ? 'selected' : '' %>>Indian</option>
+        <option value="International" <%= filters.origin === 'International' ? 'selected' : '' %>>International</option>
+        <option value="Mixed" <%= filters.origin === 'Mixed' ? 'selected' : '' %>>Mixed</option>
+      </select>
+      <button type="submit">Filter</button>
+      <% if (filters.q || filters.category || filters.type || filters.origin) { %>
+        <a class="clear" href="/browse">Clear all</a>
+      <% } %>
+    </form>
+    <div class="result-count fade-in" id="resultCount"><%= resultCount %> title<%= resultCount === 1 ? '' : 's' %> found</div>
+
+    <div class="sort-controls fade-in">
+      <label>Sort:</label>
+      <button class="sort-btn active" data-sort="az">A → Z</button>
+      <button class="sort-btn" data-sort="za">Z → A</button>
+      <button class="sort-btn" data-sort="newest">Newest</button>
+    </div>
+
+    <% var cats = Object.keys(grouped) %>
+    <% if (cats.length === 0) { %>
+      <div class="empty fade-in" style="margin-top:24px;">
+        <div class="big">No titles match</div>
+        Try clearing a filter, or <a href="/add" style="color:var(--gold);">add this title</a> if it's new.
+      </div>
+    <% } %>
+
+    <% cats.forEach(function(cat) { %>
+      <div data-cat-section="<%= cat %>">
+        <div class="cat-header fade-in">
+          <div class="filmstrip"></div>
+          <span class="cat-icon"><%- include('partials/icon', { name: categoryIcons[cat], size: 'md' }) %></span>
+          <h2><%= cat %></h2>
+          <span class="count"><%= grouped[cat].length %></span>
+          <div class="line"></div>
+        </div>
+        <div class="ticket-grid stagger-children">
+          <% grouped[cat].forEach(function(item) { %>
+            <div class="ticket fade-in" data-search-title="<%= item.title %>" data-search-notes="<%= item.notes || '' %>" data-search-sub="<%= item.subcategory || '' %>" data-date="<%= item.dateAdded %>">
+              <div class="ticket-stub origin-<%= item.origin %>"><%= item.origin %></div>
+              <div class="ticket-body">
+                <div class="ticket-title"><%= item.title %></div>
+                <div class="ticket-meta">
+                  <span class="badge type-<%= item.type %>">
+                    <%- include('partials/icon', { name: item.typeIconKey, size: 'sm' }) %>
+                    <%= item.type %>
+                  </span>
+                  <% if (item.subcategory) { %><span class="badge"><%= item.subcategory %></span><% } %>
+                </div>
+                <div class="ticket-actions">
+                  <a href="/edit/<%= item.id %>">Edit</a>
+                  <form method="POST" action="/delete/<%= item.id %>" onsubmit="return confirm('Remove &quot;<%= item.title.replace(/'/g, '') %>&quot; from your ledger?');" style="display:inline;">
+                    <input type="hidden" name="from" value="browse">
+                    <button type="submit" class="danger">Delete</button>
+                  </form>
+                </div>
+                <% if (item.notes) { %>
+                  <div class="ticket-notes-preview"><%= item.notes %></div>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+
+  </div>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% var title = 'Watchlist' %>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/nav') %>
+
+  <div class="wrap">
+    <h1 class="section-title fade-in" style="font-size:2rem; margin-bottom:6px;">Watchlist</h1>
+    <p class="fade-in" style="color:var(--text-dim); margin-top:0; margin-bottom:22px;">Things you're planning to watch. Mark one watched to move it into your collection.</p>
+
+    <div class="btn-row fade-in" style="justify-content:flex-start; margin-bottom:28px;">
+      <a href="/add?for=watchlist" class="btn btn-gold">+ Add to watchlist</a>
+    </div>
+
+    <% if (items.length === 0) { %>
+      <div class="empty fade-in">
+        <div class="big">Nothing queued up</div>
+        Add a title you're planning to watch and it'll show up here.
+      </div>
+    <% } else { %>
+      <div class="ticket-grid stagger-children">
+        <% items.forEach(function(item) { %>
+          <div class="ticket fade-in">
+            <div class="ticket-stub origin-<%= item.origin %>"><%= item.origin %></div>
+            <div class="ticket-body">
+              <div class="ticket-title"><%= item.title %></div>
+              <div class="ticket-meta">
+                <span class="badge type-<%= item.type %>">
+                  <%- include('partials/icon', { name: item.typeIconKey, size: 'sm' }) %>
+                  <%= item.type %>
+                </span>
+                <span class="badge"><%= item.category %></span>
+              </div>
+              <div class="time-ago" data-date-added="<%= item.dateAdded %>"></div>
+              <div class="ticket-actions">
+                <form method="POST" action="/watchlist/<%= item.id %>/watched" style="display:inline;">
+                  <button type="submit" class="watched-btn">Mark Watched</button>
+                </form>
+                <a href="/edit/<%= item.id %>">Edit</a>
+                <form method="POST" action="/delete/<%= item.id %>" onsubmit="return confirm('Remove &quot;<%= item.title.replace(/'/g, '') %>&quot; from your watchlist?');" style="display:inline;">
+                  <input type="hidden" name="from" value="watchlist">
+                  <button type="submit" class="danger">Delete</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% var title = 'Home' %>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/nav') %>
+
+  <div class="filmstrip"></div>
+
+  <div class="marquee">
+    <div class="bulbs"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <h1 class="marquee-title">MEDIA FORCE <span class="dim">BEWITCH YOU</span></h1>
+    <p class="marquee-tagline">Somvanshi's own archive — not rented, not synced to anyone else's algorithm, just yours. May the Force be with you.</p>
+  </div>
+
+  <div class="filmstrip"></div>
+
+  <div class="wrap">
+
+    <div class="ticker fade-in">
+      <a href="/browse">
+        <div class="num" data-counter="<%= stats.total %>">0</div>
+        <div class="label">In Collection</div>
+      </a>
+      <a href="/browse?type=movie">
+        <div class="num" data-counter="<%= stats.movies %>">0</div>
+        <div class="label">Movies</div>
+      </a>
+      <a href="/browse?type=series">
+        <div class="num" data-counter="<%= stats.series %>">0</div>
+        <div class="label">Series</div>
+      </a>
+      <a href="/browse?origin=Indian">
+        <div class="num" data-counter="<%= stats.indian %>">0</div>
+        <div class="label">Indian</div>
+      </a>
+      <a href="/browse?origin=International">
+        <div class="num" data-counter="<%= stats.international %>">0</div>
+        <div class="label">International</div>
+      </a>
+      <a href="/watchlist">
+        <div class="num" data-counter="<%= stats.watchlist %>">0</div>
+        <div class="label">Watchlist</div>
+      </a>
+    </div>
+
+    <% if (typeof funFact !== 'undefined' && funFact) { %>
+      <div class="fun-fact fade-in"><%- funFact %></div>
+    <% } %>
+
+    <div class="btn-row fade-in">
+      <a href="/add" class="btn btn-gold">+ Add a title you just watched</a>
+      <a href="/add?for=watchlist" class="btn btn-outline">+ Queue something to watch</a>
+    </div>
+
+    <h2 class="section-title fade-in" style="margin-top:48px;">Now Cataloguing</h2>
+    <div class="cat-grid stagger-children">
+      <% categories.forEach(function(c) { %>
+        <a class="cat-tile fade-in" href="/browse?category=<%= encodeURIComponent(c.name) %>">
+          <span class="cat-tile-left">
+            <%- include('partials/icon', { name: c.icon, size: 'md' }) %>
+            <span class="name"><%= c.name %></span>
+          </span>
+          <span class="n"><%= c.count %></span>
+        </a>
+      <% }) %>
+    </div>
+
+    <h2 class="section-title fade-in">Recently Added</h2>
+    <div class="recent-list stagger-children">
+      <% recent.forEach(function(r) { %>
+        <div class="recent-row fade-in">
+          <span class="rt">
+            <%- include('partials/icon', { name: r.icon, size: 'sm' }) %>
+            <%= r.title %> <span style="color:var(--text-faint); font-weight:400;">— <%= r.category %></span>
+          </span>
+          <span class="rc"><%= r.dateAdded %> · <%= r.status === 'watchlist' ? 'watchlist' : 'watched' %></span>
+        </div>
+      <% }) %>
+      <% if (recent.length === 0) { %>
+        <div class="empty">
+          <div class="big">Nothing logged yet</div>
+          Add your first title to get the reel rolling.
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+
+  <!-- Floating Action Button (mobile) -->
+  <button class="fab" id="fab" aria-label="Quick add a title">+</button>
+
+  <!-- Quick Add Modal -->
+  <div class="modal-overlay" id="quickAddOverlay">
+    <div class="modal">
+      <h2>Quick Add</h2>
+      <p>Jot down a title fast — fill in details later.</p>
+      <form method="POST" action="/add">
+        <div class="field">
+          <label for="qa-title">Title</label>
+          <input type="text" id="qa-title" name="title" placeholder="e.g. Oppenheimer('23)" required>
+        </div>
+        <div class="field">
+          <label for="qa-category">Category</label>
+          <input type="text" id="qa-category" name="category" list="qaCatList" placeholder="e.g. SuperHero" required>
+          <datalist id="qaCatList">
+            <% categories.forEach(function(c) { %><option value="<%= c.name %>"><% }) %>
+          </datalist>
+        </div>
+        <input type="hidden" name="type" value="movie">
+        <input type="hidden" name="origin" value="International">
+        <input type="hidden" name="status" value="collection">
+        <input type="hidden" name="subcategory" value="">
+        <input type="hidden" name="notes" value="">
+        <div class="modal-actions">
+          <button type="button" class="modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-gold">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

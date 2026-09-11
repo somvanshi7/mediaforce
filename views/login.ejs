@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d0d12">
+  <title>Login — Media Force</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+</head>
+<body>
+
+  <div class="login-page">
+    <div class="bulbs"><span></span><span></span><span></span><span></span><span></span></div>
+    <h1 class="marquee-title">MEDIA<span class="dim">FORCE</span></h1>
+
+    <div class="login-card">
+      <h2>Enter PIN</h2>
+      <p>This archive is private. Enter your PIN to continue.</p>
+
+      <form method="POST" action="/login">
+        <input
+          type="password"
+          name="pin"
+          class="pin-input"
+          placeholder="• • • • • •"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="current-password"
+          autofocus
+          required
+        >
+        <button type="submit" class="btn btn-gold">Unlock</button>
+      </form>
+
+      <% if (error) { %>
+        <div class="login-error"><%= error %></div>
+      <% } %>
+    </div>
+  </div>
+
+</body>
+</html>

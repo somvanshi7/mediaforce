@@ -1,0 +1,21 @@
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="/" class="brand" title="Media Force Bewitch You">MEDIA<span>FORCE</span></a>
+    <button class="navtoggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
+    <div class="navlinks" id="navLinks">
+      <a href="/" class="<%= page === 'home' ? 'active' : '' %>">Home</a>
+      <a href="/browse" class="<%= page === 'browse' ? 'active' : '' %>">Browse</a>
+      <a href="/watchlist" class="<%= page === 'watchlist' ? 'active' : '' %>">Watchlist<% if (typeof watchlistCount !== 'undefined' && watchlistCount > 0) { %><span class="badge-count"><%= watchlistCount %></span><% } %></a>
+      <a href="/add" class="<%= page === 'add' ? 'active' : '' %>">Add Title</a>
+      <a href="/export" class="export-link">Export Backup</a>
+      <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
+        <a href="/logout" class="logout-link">Logout</a>
+      <% } %>
+    </div>
+  </div>
+</nav>
+<script>
+  document.getElementById('navToggle').addEventListener('click', function () {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+</script>
