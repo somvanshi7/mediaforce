@@ -5,6 +5,7 @@
   <%- include('partials/head') %>
 </head>
 <body>
+  <%- include('partials/bg') %>
   <%- include('partials/nav') %>
 
   <div class="wrap">
@@ -47,7 +48,7 @@
     <% if (cats.length === 0) { %>
       <div class="empty fade-in" style="margin-top:24px;">
         <div class="big">No titles match</div>
-        Try clearing a filter, or <a href="/add" style="color:var(--gold);">add this title</a> if it's new.
+        Try clearing a filter, or <a href="/add" style="color:var(--crimson);">add this title</a> if it's new.
       </div>
     <% } %>
 

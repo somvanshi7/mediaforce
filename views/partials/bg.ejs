@@ -1,0 +1,25 @@
+<!-- Cinematic background slideshow using Unsplash free images -->
+<div class="bg-slideshow" id="bgSlideshow">
+  <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920&q=80');"></div>
+  <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&q=80');"></div>
+  <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1920&q=80');"></div>
+  <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=1920&q=80');"></div>
+  <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1585951237318-9ea5e175b891?w=1920&q=80');"></div>
+  <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1595769816263-9b910be24d5f?w=1920&q=80');"></div>
+</div>
+<div class="bg-overlay"></div>
+<div class="bg-grain"></div>
+<div class="bg-vignette"></div>
+
+<script>
+(function() {
+  var slides = document.querySelectorAll('#bgSlideshow .slide');
+  if (slides.length < 2) return;
+  var current = 0;
+  setInterval(function() {
+    slides[current].classList.remove('active');
+    current = (current + 1) % slides.length;
+    slides[current].classList.add('active');
+  }, 7000);
+})();
+</script>

@@ -4,8 +4,8 @@
   "description": "Somvanshi's personal movie & web series collection — your own archive, anywhere.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d0d12",
-  "theme_color": "#0d0d12",
+  "background_color": "#080810",
+  "theme_color": "#080810",
   "icons": [
     {
       "src": "/icon-192.png",
