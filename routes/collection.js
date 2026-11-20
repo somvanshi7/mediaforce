@@ -46,154 +46,197 @@ function generateFunFact(collection) {
 }
 
 // ---------- Home / Dashboard ----------
-router.get("/", function (req, res) {
-  var items = db.getAll();
-  var collection = items.filter(function (i) { return i.status === "collection"; });
-  var watchlist = items.filter(function (i) { return i.status === "watchlist"; });
+router.get("/", async function (req, res, next) {
+  try {
+    var items = await db.getAll();
+    var collection = items.filter(function (i) { return i.status === "collection"; });
+    var watchlist = items.filter(function (i) { return i.status === "watchlist"; });
 
-  var stats = {
-    total: collection.length,
-    movies: collection.filter(function (i) { return i.type === "movie"; }).length,
-    series: collection.filter(function (i) { return i.type === "series"; }).length,
-    indian: collection.filter(function (i) { return i.origin === "Indian"; }).length,
-    international: collection.filter(function (i) { return i.origin !== "Indian"; }).length,
-    watchlist: watchlist.length,
-  };
+    var stats = {
+      total: collection.length,
+      movies: collection.filter(function (i) { return i.type === "movie"; }).length,
+      series: collection.filter(function (i) { return i.type === "series"; }).length,
+      indian: collection.filter(function (i) { return i.origin === "Indian"; }).length,
+      international: collection.filter(function (i) { return i.origin !== "Indian"; }).length,
+      watchlist: watchlist.length,
+    };
 
-  var categoryCounts = {};
-  collection.forEach(function (i) {
-    categoryCounts[i.category] = (categoryCounts[i.category] || 0) + 1;
-  });
-  var categories = Object.entries(categoryCounts)
-    .sort(function (a, b) { return b[1] - a[1]; })
-    .map(function (entry) { return { name: entry[0], count: entry[1], icon: categoryIcon(entry[0]) }; });
+    var categoryCounts = {};
+    collection.forEach(function (i) {
+      categoryCounts[i.category] = (categoryCounts[i.category] || 0) + 1;
+    });
+    var categories = Object.entries(categoryCounts)
+      .sort(function (a, b) { return b[1] - a[1]; })
+      .map(function (entry) { return { name: entry[0], count: entry[1], icon: categoryIcon(entry[0]) }; });
 
-  var recent = items.slice()
-    .sort(function (a, b) { return a.dateAdded < b.dateAdded ? 1 : -1; })
-    .slice(0, 8)
-    .map(function (r) { return Object.assign({}, r, { icon: typeIcon(r.type) }); });
+    var recent = items.slice()
+      .sort(function (a, b) { return a.dateAdded < b.dateAdded ? 1 : -1; })
+      .slice(0, 8)
+      .map(function (r) { return Object.assign({}, r, { icon: typeIcon(r.type) }); });
 
-  var funFact = generateFunFact(collection);
+    var funFact = generateFunFact(collection);
 
-  res.render("index", { stats: stats, categories: categories, recent: recent, funFact: funFact, page: "home" });
+    res.render("index", { stats: stats, categories: categories, recent: recent, funFact: funFact, page: "home" });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // ---------- Browse collection ----------
-router.get("/browse", function (req, res) {
-  var q = req.query.q || "";
-  var category = req.query.category || "";
-  var type = req.query.type || "";
-  var origin = req.query.origin || "";
-  var items = db.getAll().filter(function (i) { return i.status === "collection"; });
+router.get("/browse", async function (req, res, next) {
+  try {
+    var q = req.query.q || "";
+    var category = req.query.category || "";
+    var type = req.query.type || "";
+    var origin = req.query.origin || "";
+    var allItems = await db.getAll();
+    var items = allItems.filter(function (i) { return i.status === "collection"; });
 
-  if (q) {
-    var needle = q.toLowerCase();
-    items = items.filter(function (i) { return i.title.toLowerCase().includes(needle); });
+    if (q) {
+      var needle = q.toLowerCase();
+      items = items.filter(function (i) { return i.title.toLowerCase().includes(needle); });
+    }
+    if (category) items = items.filter(function (i) { return i.category === category; });
+    if (type) items = items.filter(function (i) { return i.type === type; });
+    if (origin) items = items.filter(function (i) { return i.origin === origin; });
+
+    // group by category for the accordion view
+    var grouped = {};
+    items.forEach(function (i) {
+      if (!grouped[i.category]) grouped[i.category] = [];
+      grouped[i.category].push(Object.assign({}, i, { typeIconKey: typeIcon(i.type) }));
+    });
+    Object.values(grouped).forEach(function (list) {
+      list.sort(function (a, b) { return a.title.localeCompare(b.title); });
+    });
+
+    var allCategories = await db.getCategories();
+    var categoryIcons = {};
+    allCategories.forEach(function (c) { categoryIcons[c] = categoryIcon(c); });
+
+    res.render("browse", {
+      grouped: grouped,
+      allCategories: allCategories,
+      categoryIcons: categoryIcons,
+      filters: { q: q, category: category, type: type, origin: origin },
+      resultCount: items.length,
+      page: "browse",
+    });
+  } catch (err) {
+    next(err);
   }
-  if (category) items = items.filter(function (i) { return i.category === category; });
-  if (type) items = items.filter(function (i) { return i.type === type; });
-  if (origin) items = items.filter(function (i) { return i.origin === origin; });
-
-  // group by category for the accordion view
-  var grouped = {};
-  items.forEach(function (i) {
-    if (!grouped[i.category]) grouped[i.category] = [];
-    grouped[i.category].push(Object.assign({}, i, { typeIconKey: typeIcon(i.type) }));
-  });
-  Object.values(grouped).forEach(function (list) {
-    list.sort(function (a, b) { return a.title.localeCompare(b.title); });
-  });
-
-  var allCategories = db.getCategories();
-  var categoryIcons = {};
-  allCategories.forEach(function (c) { categoryIcons[c] = categoryIcon(c); });
-
-  res.render("browse", {
-    grouped: grouped,
-    allCategories: allCategories,
-    categoryIcons: categoryIcons,
-    filters: { q: q, category: category, type: type, origin: origin },
-    resultCount: items.length,
-    page: "browse",
-  });
 });
 
 // ---------- Watchlist ----------
-router.get("/watchlist", function (req, res) {
-  var items = db
-    .getAll()
-    .filter(function (i) { return i.status === "watchlist"; })
-    .sort(function (a, b) { return a.dateAdded < b.dateAdded ? 1 : -1; })
-    .map(function (i) { return Object.assign({}, i, { typeIconKey: typeIcon(i.type) }); });
-  res.render("watchlist", { items: items, page: "watchlist" });
+router.get("/watchlist", async function (req, res, next) {
+  try {
+    var allItems = await db.getAll();
+    var items = allItems
+      .filter(function (i) { return i.status === "watchlist"; })
+      .sort(function (a, b) { return a.dateAdded < b.dateAdded ? 1 : -1; })
+      .map(function (i) { return Object.assign({}, i, { typeIconKey: typeIcon(i.type) }); });
+    res.render("watchlist", { items: items, page: "watchlist" });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/watchlist/:id/watched", function (req, res) {
-  db.update(req.params.id, { status: "collection" });
-  res.redirect("/watchlist?toast=" + encodeURIComponent("Moved to collection!"));
+router.post("/watchlist/:id/watched", async function (req, res, next) {
+  try {
+    await db.update(req.params.id, { status: "collection" });
+    res.redirect("/watchlist?toast=" + encodeURIComponent("Moved to collection!"));
+  } catch (err) {
+    next(err);
+  }
 });
 
 // ---------- Add ----------
-router.get("/add", function (req, res) {
-  var status = req.query.for === "watchlist" ? "watchlist" : "collection";
-  res.render("add", {
-    categories: db.getCategories(),
-    defaultStatus: status,
-    page: "add",
-  });
+router.get("/add", async function (req, res, next) {
+  try {
+    var status = req.query.for === "watchlist" ? "watchlist" : "collection";
+    var categories = await db.getCategories();
+    res.render("add", {
+      categories: categories,
+      defaultStatus: status,
+      page: "add",
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/add", function (req, res) {
-  var title = req.body.title;
-  var category = req.body.category;
-  var subcategory = req.body.subcategory;
-  var type = req.body.type;
-  var origin = req.body.origin;
-  var status = req.body.status;
-  var notes = req.body.notes;
+router.post("/add", async function (req, res, next) {
+  try {
+    var title = req.body.title;
+    var category = req.body.category;
+    var subcategory = req.body.subcategory;
+    var type = req.body.type;
+    var origin = req.body.origin;
+    var status = req.body.status;
+    var notes = req.body.notes;
 
-  if (!title || !title.trim() || !category || !category.trim()) {
-    return res.redirect("/add");
+    if (!title || !title.trim() || !category || !category.trim()) {
+      return res.redirect("/add");
+    }
+    await db.add({ title: title, category: category, subcategory: subcategory, type: type, origin: origin, status: status, notes: notes });
+    var dest = status === "watchlist" ? "/watchlist" : "/browse";
+    res.redirect(dest + "?toast=" + encodeURIComponent('"' + title.trim() + '" added!'));
+  } catch (err) {
+    next(err);
   }
-  db.add({ title: title, category: category, subcategory: subcategory, type: type, origin: origin, status: status, notes: notes });
-  var dest = status === "watchlist" ? "/watchlist" : "/browse";
-  res.redirect(dest + "?toast=" + encodeURIComponent('"' + title.trim() + '" added!'));
 });
 
 // ---------- Edit ----------
-router.get("/edit/:id", function (req, res) {
-  var item = db.getById(req.params.id);
-  if (!item) return res.redirect("/browse");
-  res.render("edit", { item: item, categories: db.getCategories(), page: "edit" });
+router.get("/edit/:id", async function (req, res, next) {
+  try {
+    var item = await db.getById(req.params.id);
+    if (!item) return res.redirect("/browse");
+    var categories = await db.getCategories();
+    res.render("edit", { item: item, categories: categories, page: "edit" });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/edit/:id", function (req, res) {
-  var title = req.body.title;
-  var category = req.body.category;
-  var subcategory = req.body.subcategory;
-  var type = req.body.type;
-  var origin = req.body.origin;
-  var status = req.body.status;
-  var notes = req.body.notes;
+router.post("/edit/:id", async function (req, res, next) {
+  try {
+    var title = req.body.title;
+    var category = req.body.category;
+    var subcategory = req.body.subcategory;
+    var type = req.body.type;
+    var origin = req.body.origin;
+    var status = req.body.status;
+    var notes = req.body.notes;
 
-  db.update(req.params.id, { title: title, category: category, subcategory: subcategory, type: type, origin: origin, status: status, notes: notes });
-  var backTo = status === "watchlist" ? "/watchlist" : "/browse";
-  res.redirect(backTo + "?toast=" + encodeURIComponent("Changes saved!"));
+    await db.update(req.params.id, { title: title, category: category, subcategory: subcategory, type: type, origin: origin, status: status, notes: notes });
+    var backTo = status === "watchlist" ? "/watchlist" : "/browse";
+    res.redirect(backTo + "?toast=" + encodeURIComponent("Changes saved!"));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post("/delete/:id", function (req, res) {
-  db.remove(req.params.id);
-  var backTo = req.body.from === "watchlist" ? "/watchlist" : "/browse";
-  res.redirect(backTo + "?toast=" + encodeURIComponent("Title removed."));
+router.post("/delete/:id", async function (req, res, next) {
+  try {
+    await db.remove(req.params.id);
+    var backTo = req.body.from === "watchlist" ? "/watchlist" : "/browse";
+    res.redirect(backTo + "?toast=" + encodeURIComponent("Title removed."));
+  } catch (err) {
+    next(err);
+  }
 });
 
 // ---------- Export (backup) ----------
-router.get("/export", function (req, res) {
-  var items = db.getAll();
-  var date = new Date().toISOString().slice(0, 10);
-  res.setHeader("Content-Disposition", 'attachment; filename="media-force-backup-' + date + '.json"');
-  res.setHeader("Content-Type", "application/json");
-  res.send(JSON.stringify(items, null, 2));
+router.get("/export", async function (req, res, next) {
+  try {
+    var items = await db.getAll();
+    var date = new Date().toISOString().slice(0, 10);
+    res.setHeader("Content-Disposition", 'attachment; filename="media-force-backup-' + date + '.json"');
+    res.setHeader("Content-Type", "application/json");
+    res.send(JSON.stringify(items, null, 2));
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;
